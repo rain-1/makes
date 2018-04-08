@@ -24,4 +24,4 @@ makes data.o \
         $CC $CFLAGS -o data.o data.c
 ```
 
-More complete examples can be found [here](https://github.com/rain-1/tarot-vm/blob/master/makesfile) and [here](https://github.com/rain-1/s/blob/master/makesfile).
+More complete examples can be found [here](https://github.com/rain-1/tarot-vm/blob/master/makesfile).
