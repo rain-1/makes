@@ -2,6 +2,8 @@
 
 This tool is used as a replacement for make.
 
+> I wanted to remove stress from my life by not using makefiles anymore.
+
 Most make implementations are around 20-30 thousand lines of code. This one is less than 1 thousand.
 
 # Usage
