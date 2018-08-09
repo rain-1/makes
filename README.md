@@ -1,31 +1,51 @@
-# makes
+# Build rule
 
-This tool is used as a replacement for make.
+Each build rule is:
 
-> I wanted to remove stress from my life by not using makefiles anymore.
+* output string
+* inputs []string
+* command string
 
-Most make implementations are around 20-30 thousand lines of code. This one is less than 1 thousand.
+Terminology:
+* "final build product" - An output which is not the input of any build rule. (the parentmost).
+* "source" - An input which is not the output of any build rule. (the childmost).
 
-# Usage
+declaratively a rule means "to create <output> from <inputs>, execute <command>".
 
-`makes <output> <input-1> <input-2> ...`
+collectively the rules form a directed acyclic graph. (*1) We add one final 'done' node at the very top, it's children being those final build products.
 
-`makes -v <output> <input-1> <input-2> ...`
+operationally we have 3 goals:
 
-It exits with status 0 if either
-* the output file does not exist
-* one of the inputs is newer than result
+* incremental: Don't perform a build command unless we need to. This allows a build to be stopped and restarted. (*2)
+* dependency: An output may need to be rebuilt if one of its transitive children(*3) has been modified. The build process will wait until all the children have been completed to do that.
+* parallelism: Run up to N simultaneous build commands that don't interfere when possible. This gives enormous speed-ups when building something large like GCC on a multicore. We also need to be careful about partially created files: Many build tools will create a file then fill its content in over time. We cannot make use of a file until the process is complete.
 
-Otherwise it exists with code 1.
+(*1) We should reject cycles. The system may deadlock if we don't.
+(*2) If killed during creation of a file, delete that partial build product. Otherwise we leave behind corrupt data which will cause the next build to fail.
+(*3) childrens children, childrens childrens children, etc.
 
-You can use this in a shell script like this:
 
-```
-makes data.o \
-        data.c data.h &&
-        $CC $CFLAGS -o data.o data.c
-```
+# Implementation
 
-More complete examples can be found:
-* [build tarot](https://github.com/rain-1/tarot-vm/blob/master/makesfile).
-* [build jq](https://gist.github.com/rain-1/bd0d745c3bd0c4a643a49b74a8c5eb4a)
+The build starts from the 'done' node. We create N>=1 build slots for parallelism.
+There will be a global hashtable to mark filenames as built. Initially the only things that are considered built are sources.
+
+To build a node:
+
+- check if this output is already considered built using the global hashtable. If so finish. (This will happen for sources, this will also happen if another worker has already built this object before we got here).
+- open a lock on building this item.
+- build all it's children in a pool of parallel goroutines
+- We are going to run a build command if: the output does not exist OR any input is newer than the output. Otherwise finish.
+- wait for that pool to complete.
+- wait for a build slot to open.
+- use that build slot run the build command. 
+- wait for the command to exit.
+- if the command exited with failure the entire build failed. Otherwise finish.
+
+To finish: mark this object as built. close any locks/mutexes.
+
+* build slots ensure no more than N commands run at once.
+* branching out many goroutines ensures we run as many commands at once as possible.
+* waiting on the pool of children ensures files are completely finished before used by the next command.
+* the build lock ensures each command will only be run once.
+
