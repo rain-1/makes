@@ -10,7 +10,7 @@ Terminology:
 * "final build product" - An output which is not the input of any build rule. (the parentmost).
 * "source" - An input which is not the output of any build rule. (the childmost).
 
-declaratively a rule means "to create <output> from <inputs>, execute <command>".
+declaratively a rule means `to create <output> from <inputs>, execute <command>`.
 
 collectively the rules form a directed acyclic graph. (*1) We add one final 'done' node at the very top, it's children being those final build products.
 
@@ -20,9 +20,9 @@ operationally we have 3 goals:
 * dependency: An output may need to be rebuilt if one of its transitive children(*3) has been modified. The build process will wait until all the children have been completed to do that.
 * parallelism: Run up to N simultaneous build commands that don't interfere when possible. This gives enormous speed-ups when building something large like GCC on a multicore. We also need to be careful about partially created files: Many build tools will create a file then fill its content in over time. We cannot make use of a file until the process is complete.
 
-(*1) We should reject cycles. The system may deadlock if we don't.
-(*2) If killed during creation of a file, delete that partial build product. Otherwise we leave behind corrupt data which will cause the next build to fail.
-(*3) childrens children, childrens childrens children, etc.
+* (*1) We should reject cycles. The system may deadlock if we don't.
+* (*2) If killed during creation of a file, delete that partial build product. Otherwise we leave behind corrupt data which will cause the next build to fail.
+* (*3) childrens children, childrens childrens children, etc.
 
 
 # Implementation
