@@ -26,6 +26,8 @@ var sources *Set
 
 var jobs map[string]buildrule
 
+var semaphoreChan chan bool
+
 func Map(vs []string, f func(string) string) []string {
     vsm := make([]string, len(vs))
     for i, v := range vs {
@@ -160,7 +162,9 @@ func performBuild(rule buildrule) {
 			// version that prints the inputs, for debugging
 			//fmt.Println(rule.inputs, "\n", "#", rule.command)
 			fmt.Println("#", rule.command)
+			semaphoreChan <- true
 			err := cmd.Run()
+			<-semaphoreChan
 			
 			if(err != nil) {
 				fmt.Println("COULD NOT DO", rule.command, err)
@@ -182,8 +186,10 @@ func main() {
 	top := parseStdin()
 
 	//fmt.Println("sources", sources.SetToSlice())
-
+	
+	semaphoreChan = make(chan bool, 8)
 	performBuild(top)
+	close(semaphoreChan)
 	
 	if(cancelled) {
 		os.Exit(1)
