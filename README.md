@@ -10,7 +10,7 @@ Terminology:
 * "final build product" - An output which is not the input of any build rule. (the parentmost).
 * "source" - An input which is not the output of any build rule. (the childmost).
 
-declaratively a rule means "to create <output> from <inputs>, execute <command>".
+declaratively a rule means `to create <output> from <inputs>, execute <command>`.
 
 collectively the rules form a directed acyclic graph. (*1) We add one final 'done' node at the very top, it's children being those final build products.
 
