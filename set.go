@@ -12,16 +12,16 @@ func NewSet() *Set {
 
 func (s *Set) Add(value string) {
 	// Never add something that has been removed
-	
+
 	_, e := s.m[value]
-	if(!e) {
+	if !e {
 		s.m[value] = true
 	}
 }
 
 func (s *Set) Remove(value string) {
 	// Tombstone it forever
-	
+
 	s.m[value] = false
 	//delete(s.m, value)
 }
@@ -33,7 +33,7 @@ func (s *Set) Contains(value string) bool {
 
 func (s *Set) CleanUp() {
 	for k, v := range s.m {
-		if(!v) {
+		if !v {
 			delete(s.m, k)
 		}
 	}
