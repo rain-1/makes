@@ -44,6 +44,12 @@ func parseLine(line string) buildrule {
 	parts := strings.SplitN(line, "\t--\t", 2)
 	filenames := strings.Split(parts[0], "\t")
 
+	if len(parts) <= 1 && len(strings.SplitN(line, " -- ", 2)) > 0 {
+		fmt.Println("ERROR: couldn't parse line:", line)
+		fmt.Println("Are you using spaces instead of tabs?")
+		os.Exit(1)
+	}
+
 	return buildrule{
 		output:  filepath.Clean(filenames[0]),
 		inputs:  Map(filenames[1:], filepath.Clean),
