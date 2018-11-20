@@ -49,3 +49,6 @@ To finish: mark this object as built. close any locks/mutexes.
 * waiting on the pool of children ensures files are completely finished before used by the next command.
 * the build lock ensures each command will only be run once.
 
+# Examples uses
+
+https://gist.github.com/rain-1/bd0d745c3bd0c4a643a49b74a8c5eb4a
